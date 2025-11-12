@@ -1,0 +1,27 @@
+.chat {
+    width: 40rem;
+}
+
+
+.user{
+    display: flex;
+    justify-content: end;
+}
+
+
+.userMessage{
+    display: inline-block;
+    padding: 0.8rem;
+    background-color: #212121;
+    border-radius: 20px;   
+    align-items: center;
+    justify-content: end;
+
+}
+
+.assistant {
+    width: 40rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: start;
+}
