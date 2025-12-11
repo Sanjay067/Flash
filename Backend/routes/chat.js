@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Thread from '../models/thread.js';
 
 
+
 // let sample_res = "Chrome DevTools (MCP) for your AI agentWith the newly launched Chrome DevTools MCP server, AI coding assistants can now debug web pages directly in Chrome, and benefit from DevTools debugging capabilities and performance insights. Debug the network dependency tree with Gemini" ;
 
 
@@ -19,26 +20,30 @@ router.get('/test', (req, res) => {
 })
 
 
-router.get('/threads/:id', async (req, res) => {
-  let allThreads = await Thread.find({});
-  res.send(allThreads);
+router.get('/threads', async (req, res) => {
+
+  const allThreads = await Thread.find({}).sort({ updatedAt: -1 });
+
+  const threads = allThreads.map(obj => {
+    return { threadId: obj.threadId, title: obj.title };
+  });
+
+  res.json(threads);
 })
 
 
+
 //show thread
-router.get('/chat/:threadId', async (req, res) => {
+router.get('/threads/:threadId', async (req, res) => {
   const { threadId } = req.params;
+
   let thread = await Thread.findOne({ threadId });
+
   if (!thread) {
     console.log('thread doesnt exist');
-    try {
-      const newThread = new Thread({
-        threadId: threadId,
-        title: 'New Chat '
-      })
-      const response = await newThread.save();
-      res.send(response);
 
+    try {
+      res.json(thread);
     } catch (error) {
       res.status(500).json({ error });
     }
@@ -55,45 +60,47 @@ router.get('/chat/:threadId', async (req, res) => {
 //generate text
 router.post("/chat", async (req, res) => {
   try {
-    let { text } = req.body
-    const output = await generateText(text);
-    
+    let { prompt, threadId } = req.body;
+
+    const reply = await generateText(prompt);
+
+    let thread = await Thread.findOne({ threadId });
+
+    if (!thread) {
+      thread = new Thread({
+        threadId,
+        title: prompt,
+        messages: [{ role: 'user', content: prompt }, { role: 'assistant', content: reply }]
+      })
+    }
+
+    else {
+      thread.messages.push({ role: 'user', content: prompt }, { role: 'assistant', content: reply });
+    }
+
+    thread.updatedAt = new Date();
+    await thread.save();
+
     // const output = sample_res;
-    res.json({ user_prompt: text, generated_response: output });
+    res.json({ user_prompt: prompt, generated_response: reply });
 
   } catch (error) {
     console.log("errror :", error);
     res.json({ msg: 'Some error occured' });
   }
-
-
-  // const { threadId , prompt} = req.body;
-  // const prompt = req.body.msg;
-
-  // console.log("threadid :",threadId);
-
-  // if (!prompt) {
-  //   return res.status(400).json({
-  //     error: "msg not found"
-  //   });
-  // }
-
-  // let thread = await Thread.findOne({threadId});
-  // if(!thread){
-  //   console.log(thread);
-  //   return res.json({"Error":"no thread exits"});
-  // }
-
-
-
 });
-
 
 //delete thread by id
 router.delete('/delete/:threadId', async (req, res) => {
-  const { threadID } = req.params;
-  let deletedThread = await Thread.findByIdAndDelete(id);
-  res.send(deletedThread);
+  try {
+    const { threadId } = req.params;
+    let deletedThread = await Thread.findOneAndDelete({ threadId });
+    res.json({deletedThread,msg:"Deleted thread"});
+
+  } catch (err) {
+    res.json("Error in deleting (from backend ) :" ,err);
+
+  }
 })
 
 
