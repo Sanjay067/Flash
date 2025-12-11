@@ -3,13 +3,12 @@ import './ChatWindow.css';
 import { useContext, useState, useEffect } from 'react';
 import { ScaleLoader } from 'react-spinners';
 import { MyContext } from './MyContext';
-import thread from '../../Backend/models/thread';
+
 
 
 function ChatWindow() {
 
-    const [loader, setLoader] = useState(false);
-    const { prompt, setPrompt, reply, setReply, prevChats, setPrevChats, currThread, setCurrThread, } = useContext(MyContext);
+    const { prompt, setPrompt, reply, setReply, prevChats, setPrevChats, currThread, setCurrThread , loader , setLoader } = useContext(MyContext);
 
     async function getreply(prompt) {
         if (!prompt.trim()) return;
@@ -18,14 +17,14 @@ function ChatWindow() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                text: prompt,
+                prompt,
                 threadId: currThread
             }),
         }
         try {
             let res = await fetch('http://localhost:3000/api/chat', options);
             let data = await res.json();
-            console.log("AI response :", data.generated_response);
+            // console.log("AI response :", data.generated_response);
             setReply(data.generated_response);
         } catch (e) {
             console.log('error :', e);
@@ -36,6 +35,8 @@ function ChatWindow() {
         }
 
     }
+
+
 
     //Append new chat to previous chat
 
@@ -51,10 +52,10 @@ function ChatWindow() {
                 }]
             ));
         }
-        // console.log("PrevChats:",prevChats[0].role)
+
         setPrompt("");
-        setReply("");
     }, [reply]);
+
 
 
     return (
@@ -67,8 +68,10 @@ function ChatWindow() {
                     <button className='logout_btn'><i className="fa-solid fa-right-from-bracket"></i></button>
                 </div>
             </nav>
+            <div className="chat_interface">
+                <Chat />
+            </div>
             <ScaleLoader loading={loader} color='#ffffff' />
-            <Chat />
             <div className="chatwindow_bottom">
                 <div className="chatwindow_input">
                     <input placeholder='Ask anything' value={prompt} onChange={(e) => {
