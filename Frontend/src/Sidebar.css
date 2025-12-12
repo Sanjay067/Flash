@@ -142,3 +142,16 @@
 .sidebar__bottom:hover {
     background-color: #121212;
 }
+
+
+ /* display sideabar */
+
+ .display_sidebar{
+    display: none;
+    background-color: #121212;
+ }
+
+  .display_sidebar button i{
+    color: black;
+    border-radius: 2rem;
+  }
